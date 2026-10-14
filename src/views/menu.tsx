@@ -17,9 +17,14 @@ export default function Menu() {
     (async () => {
       const menu = await pizzaService.getMenu();
       setMenu(menu);
-      const franchiseList = await pizzaService.getFranchises(0, 20, '*');
       const newStoreMap: { [key: string]: { store: Store; franchise: Franchise } } = {};
-      franchiseList.franchises.forEach((franchise) => franchise.stores.forEach((store) => (newStoreMap[store.id] = { store, franchise })));
+      let page = 0;
+      let more = true;
+      while (more) {
+        const franchiseList = await pizzaService.getFranchises(page++, 20, '*');
+        franchiseList.franchises.forEach((franchise) => franchise.stores.forEach((store) => (newStoreMap[store.id] = { store, franchise })));
+        more = franchiseList.more;
+      }
       setStoreMap(newStoreMap);
     })();
   }, []);

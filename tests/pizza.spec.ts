@@ -150,6 +150,17 @@ test.describe('ordering', () => {
     await expect(page.getByRole('button', { name: 'Checkout' })).toBeEnabled();
   });
 
+  test('menu lists stores from every page of franchises', async ({ page }) => {
+    const franchises = Array.from({ length: 25 }, (_, i) => ({ id: String(300 + i), name: `Empty ${i}`, admins: [], stores: [] as { id: string; name: string }[] }));
+    franchises.push({ id: '400', name: 'Last Franchise', admins: [], stores: [{ id: '401', name: 'Far Away' }] });
+    await mockBackend(page, { franchises });
+    await page.goto('/menu');
+
+    await expect(page.getByRole('combobox')).toContainText('Far Away');
+    await page.getByRole('combobox').selectOption('401');
+    await expect(page.getByRole('combobox')).toHaveValue('401');
+  });
+
   test('purchase with login', async ({ page }) => {
     await mockBackend(page);
     await page.goto('/');

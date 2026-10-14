@@ -36,6 +36,8 @@ export interface MockOptions {
   users?: User[];
   /** Make POST /api/order/verify fail so the "bad pizza" path can be tested. */
   invalidJwt?: boolean;
+  /** Replace the default franchises. */
+  franchises?: Franchise[];
 }
 
 /**
@@ -48,7 +50,7 @@ export async function mockBackend(page: Page, options: MockOptions = {}) {
   for (const u of [diner, admin, franchisee, ...(options.users ?? [])]) users[u.email!] = u;
 
   let loggedInUser: User | undefined = options.loggedInAs;
-  let franchises = initialFranchises();
+  let franchises = options.franchises ?? initialFranchises();
   let nextId = 100;
   const orders: any[] = [];
 
