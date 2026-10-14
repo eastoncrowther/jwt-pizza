@@ -106,23 +106,25 @@ test.describe('admin dashboard', () => {
   test('paginate franchises', async ({ page }) => {
     await mockBackend(page, { loggedInAs: admin });
     await page.goto('/admin-dashboard');
+    const franchises = page.getByRole('table', { name: 'Franchises' });
 
     await expect(page.getByRole('main')).not.toContainText('SlicePie');
-    await expect(page.getByRole('button', { name: '«' })).toBeDisabled();
-    await page.getByRole('button', { name: '»' }).click();
+    await expect(franchises.getByRole('button', { name: '«' })).toBeDisabled();
+    await franchises.getByRole('button', { name: '»' }).click();
 
     await expect(page.getByRole('main')).toContainText('SlicePie');
     await expect(page.getByRole('main')).not.toContainText('LotaPizza');
-    await expect(page.getByRole('button', { name: '»' })).toBeDisabled();
-    await page.getByRole('button', { name: '«' }).click();
+    await expect(franchises.getByRole('button', { name: '»' })).toBeDisabled();
+    await franchises.getByRole('button', { name: '«' }).click();
     await expect(page.getByRole('main')).toContainText('LotaPizza');
   });
 
   test('filter franchises', async ({ page }) => {
     await mockBackend(page, { loggedInAs: admin });
     await page.goto('/admin-dashboard');
+    const franchises = page.getByRole('table', { name: 'Franchises' });
     await page.getByPlaceholder('Filter franchises').fill('corp');
-    await page.getByRole('button', { name: 'Submit' }).click();
+    await franchises.getByRole('button', { name: 'Submit' }).click();
 
     await expect(page.getByRole('main')).toContainText('PizzaCorp');
     await expect(page.getByRole('main')).not.toContainText('LotaPizza');
@@ -132,6 +134,7 @@ test.describe('admin dashboard', () => {
   test('create a franchise', async ({ page }) => {
     await mockBackend(page, { loggedInAs: admin });
     await page.goto('/admin-dashboard');
+    const franchises = page.getByRole('table', { name: 'Franchises' });
     await page.getByRole('button', { name: 'Add Franchise' }).click();
 
     await expect(page).toHaveURL(/\/admin-dashboard\/create-franchise$/);
@@ -140,7 +143,7 @@ test.describe('admin dashboard', () => {
     await page.getByRole('button', { name: 'Create' }).click();
 
     await expect(page).toHaveURL(/\/admin-dashboard$/);
-    await page.getByRole('button', { name: '»' }).click();
+    await franchises.getByRole('button', { name: '»' }).click();
     await expect(page.getByRole('main')).toContainText('NewPizza');
   });
 
