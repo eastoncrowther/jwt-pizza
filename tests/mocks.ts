@@ -90,6 +90,34 @@ export async function mockBackend(page: Page, options: MockOptions = {}) {
       return loggedInUser ? json(route, loggedInUser) : json(route, { message: 'unauthorized' }, 401);
     }
 
+    // Users (must come after /api/user/me so "me" is not treated as an id)
+    const userMatch = path.match(/^\/api\/user\/(\w+)$/);
+    if (userMatch) {
+      const [email, user] = Object.entries(users).find(([, u]) => u.id === userMatch[1]) ?? [];
+      if (!email || !user) return json(route, { message: 'unknown user' }, 404);
+      if (method === 'DELETE') {
+        delete users[email];
+        return json(route, { message: 'user deleted' });
+      }
+      // PUT: update name/email/password, keeping the existing password when none is sent
+      const updated: User = { ...user, name: body.name ?? user.name, email: body.email ?? user.email, password: body.password || user.password };
+      delete users[email];
+      users[updated.email!] = updated;
+      if (loggedInUser?.id === updated.id) loggedInUser = updated;
+      return json(route, { user: updated, token: 'abcdef' });
+    }
+
+    if (path === '/api/user') {
+      const page = Number(url.searchParams.get('page') ?? 0);
+      const limit = Number(url.searchParams.get('limit') ?? 10);
+      const filter = (url.searchParams.get('name') ?? '*').replace(/\*/g, '').toLowerCase();
+      const matches = Object.values(users)
+        .filter((u) => (u.name ?? '').toLowerCase().includes(filter))
+        .map(({ password, ...u }) => u);
+      const start = page * limit;
+      return json(route, { users: matches.slice(start, start + limit), more: matches.length > start + limit });
+    }
+
     // Orders
     if (path === '/api/order/menu') return json(route, menu);
     if (path === '/api/order/verify') {
