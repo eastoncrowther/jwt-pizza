@@ -127,3 +127,21 @@ test('closing the dialog with the X button does not change the user', async ({ p
   await expect(page.getByRole('main')).toContainText('Kai Chen');
   await expect(page.getByRole('main')).not.toContainText('Not Saved');
 });
+
+test('updated user survives navigating away and refreshing the page', async ({ page }) => {
+  await mockBackend(page, { loggedInAs: diner });
+  await page.goto('/diner-dashboard');
+
+  await editUser(page, { name: 'Kai Refreshed', email: 'refreshed@jwt.com' });
+  await expect(page.getByRole('main')).toContainText('Kai Refreshed');
+
+  await page.getByRole('link', { name: 'Order' }).click();
+  await expect(page).toHaveURL(/\/menu$/);
+  await page.getByRole('link', { name: 'KR' }).click();
+  await expect(page.getByRole('main')).toContainText('Kai Refreshed');
+  await expect(page.getByRole('main')).toContainText('refreshed@jwt.com');
+
+  await page.reload();
+  await expect(page.getByRole('main')).toContainText('Kai Refreshed');
+  await expect(page.getByRole('main')).toContainText('refreshed@jwt.com');
+});
