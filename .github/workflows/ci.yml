@@ -96,6 +96,14 @@ jobs:
           aws s3 cp dist s3://${{ secrets.APP_BUCKET }} --recursive
           aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
 
+      - name: Annotate Grafana dashboard
+        continue-on-error: true
+        run: |
+          curl -s --fail-with-body -X POST https://zealousdesert77.grafana.net/api/annotations \
+            -H "Authorization: Bearer ${{ secrets.GRAFANA_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"dashboardUID\":\"jwt-pizza-service\",\"panelId\":1,\"text\":\"Version $version deployed\",\"tags\":[\"deployment\",\"jwt-pizza\"]}"
+
   release:
     needs:
       - build
